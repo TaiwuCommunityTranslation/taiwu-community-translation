@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>net481</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTweenPro">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\DOTweenPro.dll</HintPath>
+    </Reference>
+    <Reference Include="TaiwuModdingLib">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\TaiwuModdingLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+	  <Reference Include="UnityEngine">
+		  <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\UnityEngine.dll</HintPath>
+	  </Reference>
+	  <Reference Include="UnityEngine.UI">
+		  <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\UnityEngine.UI.dll</HintPath>
+	  </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
