@@ -15,6 +15,7 @@ namespace TaiwuCommunityTranslation
     [PluginConfig("Taiwu Community Translation", "Taiwu Mods Community", "0.1.0")]
     public class Mod : TaiwuRemakeHarmonyPlugin
     {
+        public bool enableAutoSizing = true;
         public override void Initialize()
         {
             base.Initialize();
@@ -46,6 +47,7 @@ namespace TaiwuCommunityTranslation
                 foreach (var tl in textLanguages)
                 {
                     tl.SetLanguage();
+                    AdjustTMPro(tl.gameObject.GetComponent<TextMeshProUGUI>());
 
                     continue; // DISABLE UI FIX
 
@@ -107,12 +109,25 @@ namespace TaiwuCommunityTranslation
             }
             catch { }
         }
+
+        void AdjustTMPro(TextMeshProUGUI textMesh)
+        {
+            if (enableAutoSizing)
+            {
+                textMesh.fontSizeMin = 12;
+                textMesh.fontSizeMax = 24;
+                textMesh.enableAutoSizing = true;
+            }
+
+        }
     }
+
+
 
 
     public class TranslatorAssistant : MonoBehaviour
     {
-        public bool enableAutoSizing = true;
+        
         public static void AddToGame()
         {
             GameObject go = new GameObject();
@@ -124,18 +139,7 @@ namespace TaiwuCommunityTranslation
 
         void Update()
         {
-            System.Array.ForEach(FindObjectsOfType<TextMeshProUGUI>(), AdjustTMPro);
-        }
 
-        void AdjustTMPro(TextMeshProUGUI textMesh)
-        {
-            if (enableAutoSizing)
-            { 
-                textMesh.fontSizeMin = 12;
-                textMesh.fontSizeMax = 24;
-                textMesh.enableAutoSizing = true;
-            }
-            
         }
     }
 
