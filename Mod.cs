@@ -1,14 +1,11 @@
 ﻿using System.Reflection;
 using System.IO;
 using TaiwuModdingLib.Core.Plugin;
-using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace TaiwuCommunityTranslation
 {
@@ -26,21 +23,26 @@ namespace TaiwuCommunityTranslation
             var prefix = @"Languages\en";
             if (!Directory.Exists(prefix)) return;
 
-            var file = @"ui_language.txt";
-            var lines = File.ReadAllText(Path.Combine(prefix, file)).Split('\n');
-            for (int i = 0; i < lines.Length; i++) lines[i] = lines[i].Replace("\\n", "\n");
+            var file = @"ui_language.json";
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(prefix, file)));
 
-            Debug.Log($"!!!!! ui_language loaded with {lines.Length} lines");
+            Debug.Log($"!!!!! ui_language loaded with {dict.Count} entries");
 
             var lsm = typeof(LocalStringManager);
             var uiLanguageField = lsm.GetField("_localUILanguageArray", BindingFlags.NonPublic | BindingFlags.Static);
-            uiLanguageField.SetValue(null, lines);
+            var lines = uiLanguageField.GetValue(null) as string[];
+            foreach (var entry in dict)
+            {
+                if (entry.Value == "") continue;
 
-            Debug.Log("!!!!! cleared LocalStringManager._localUILanguageArray");
+                var id = LanguageKey.LanguageKeyToId(entry.Key);
+                lines[id] = entry.Value;
+            }
+            // uiLanguageField.SetValue(null, lines);
 
-            Debug.Log("??????");
+            Debug.Log("!!!!! patched LocalStringManager._localUILanguageArray");
 
-            // TODO: start scrolling animation
+            // load translation
             SingletonObject.getInstance<YieldHelper>().DelayFrameDo(1u, delegate {
                 var rootGo = UIManager.Instance.gameObject;
                 var textLanguages = rootGo.GetComponentsInChildren<TextLanguage>(true);
@@ -48,45 +50,6 @@ namespace TaiwuCommunityTranslation
                 {
                     tl.SetLanguage();
                     AdjustTMPro(tl.gameObject.GetComponent<TextMeshProUGUI>());
-
-                    continue; // DISABLE UI FIX
-
-                    var labelGo = tl.gameObject;
-                    var labelTransform = labelGo.transform as RectTransform;
-
-                    // set nowrap
-                    var tmp = labelGo.GetComponent<TextMeshProUGUI>();
-                    tmp.enableWordWrapping = false;
-
-                    // add container
-                    var backGo = labelTransform.parent.gameObject;
-                    var backTransform = backGo.transform as RectTransform;
-                    if (backGo.GetComponent<Mask>() == null) backGo.AddComponent(typeof(Mask));
-                    if (backGo.GetComponent<Image>() == null && backGo.GetComponent<Graphic>() == null)
-                    {
-                        backGo.AddComponent(typeof(CImage));
-                        var cimg = backGo.GetComponent<CImage>();
-                        cimg.SetAlpha(0.01f);
-                    }
-
-                    // ignore fitted game objects
-                    if (tmp.renderedWidth < backTransform.sizeDelta.x) continue;
-
-                    float initX = (tmp.renderedWidth - backTransform.sizeDelta.x) / 2f + 4f;
-                    var pos = new Vector2(initX, labelTransform.anchoredPosition.y);
-                    labelTransform.anchoredPosition = pos;
-
-                    var sequence = DOTween.Sequence();
-                    sequence.Append(labelTransform.DOAnchorPosX(0f - initX, tmp.text.Length * 0.1f).SetEase(Ease.Linear).SetUpdate(isIndependentUpdate: true));
-                    sequence.AppendInterval(2f);
-                    sequence.AppendCallback(delegate {
-                        labelTransform.anchoredPosition = pos;
-                    });
-                    sequence.AppendInterval(2f);
-                    sequence.SetUpdate(isIndependentUpdate: true);
-                    // sequence.SetLoops(-1);
-                    sequence.SetLoops(3); // FIXME
-                    sequence.Play();
                 }
             });
 
@@ -118,12 +81,8 @@ namespace TaiwuCommunityTranslation
                 textMesh.fontSizeMax = 24;
                 textMesh.enableAutoSizing = true;
             }
-
         }
     }
-
-
-
 
     public class TranslatorAssistant : MonoBehaviour
     {

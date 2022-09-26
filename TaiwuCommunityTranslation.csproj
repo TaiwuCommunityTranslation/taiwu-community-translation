@@ -20,6 +20,9 @@
     <Reference Include="DOTweenPro">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\The Scroll Of Taiwu\The Scroll of Taiwu_Data\Managed\DOTweenPro.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\太吾绘卷 The Scroll Of Taiwu 功能测试\The Scroll of Taiwu_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="TaiwuModdingLib">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\The Scroll Of Taiwu\The Scroll of Taiwu_Data\Managed\TaiwuModdingLib.dll</HintPath>
     </Reference>
