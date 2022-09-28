@@ -31,7 +31,7 @@ namespace TaiwuCommunityTranslation
             Debug.Log("!!!!! Taiwu Community Translation loaded");
             if (!Directory.Exists(prefix)) return;
             TranslatorAssistant.AddToGame();
-            
+
         }
 
         public override void Dispose()
@@ -91,7 +91,7 @@ namespace TaiwuCommunityTranslation
             Debug.Log("About to apply English");
             ApplyEnglishLangauge();
             Task<ParallelLoopResult> initCfgTask = Task.Run<ParallelLoopResult>((Func<ParallelLoopResult>)(() => Parallel.ForEach<IConfigData>((IEnumerable<IConfigData>)ConfigCollection.Items, (Action<IConfigData>)(item => item.Init()))));
-            Debug.Log("Application Done"); 
+            Debug.Log("Application Done");
             while (!initCfgTask.IsCompleted)
                 yield return (object)null;
             if (initCfgTask.Exception != null)
@@ -108,7 +108,7 @@ namespace TaiwuCommunityTranslation
             Debug.Log("LSM Manager");
             Debug.Log("!-----------------!");
 
-            
+
             var file = @"ui_language.json";
             var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, file)));
             Debug.Log($"!!!!! ui_language loaded with {dict.Count} entries");
@@ -145,9 +145,9 @@ namespace TaiwuCommunityTranslation
 
         private void ApplyArrayPack(string packname)
         {
-            if (!File.Exists(Path.Combine(Mod.prefix, packname+".txt"))) return;
+            if (!File.Exists(Path.Combine(Mod.prefix, packname + ".txt"))) return;
             string[] list = File.ReadAllLines(Path.Combine(Mod.prefix, packname + ".txt"));
-            for(int i = 0; i < list.Length; i++)
+            for (int i = 0; i < list.Length; i++)
             {
                 LocalStringManager._configLanguageMap[packname].ArrayLanguageData[i] = list[i];
             }
@@ -164,7 +164,7 @@ namespace TaiwuCommunityTranslation
 
         void AdjustTMPro(TextMeshProUGUI textMesh)
         {
-            if(textMesh == null) return;    
+            if (textMesh == null) return;
             if (Mod.enableAutoSizing)
             {
                 textMesh.fontSizeMin = 14;
@@ -183,7 +183,7 @@ namespace TaiwuCommunityTranslation
                 foreach (var tl in textLanguages)
                 {
                     tl.SetLanguage();
-                    
+
                 }
                 Debug.Log(rootGo.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().Count);
                 rootGo.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(tmpro =>
@@ -215,7 +215,7 @@ namespace TaiwuCommunityTranslation
 
         }
 
-      
+
     }
 
     //Temp fix
