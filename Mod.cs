@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using TaiwuModdingLib.Core.Plugin;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TaiwuCommunityTranslation
 {
@@ -21,23 +22,34 @@ namespace TaiwuCommunityTranslation
     {
         public static readonly string prefix = @"Languages\en";
         public static bool enableAutoSizing = true;
+        public static int minFontSize = 16;
+        public static int maxFontSize = 24;
 
+        string filename = "EngModLogs.txt";
         public override void Initialize()
         {
-            base.Initialize();
-
             Application.logMessageReceived += Log;
+            base.Initialize();
+            File.WriteAllText(filename, "Mod loaded \n");
+            
+
             Debug.Log("!!!!! Taiwu Community Translation loaded");
             if (!Directory.Exists(prefix)) return;
             TranslateEvents();
             TranslatorAssistant.AddToGame();
+
+
+            this.OnModSettingUpdate();
         }
 
         public override void OnModSettingUpdate()
         {
             base.OnModSettingUpdate();
-            Debug.Log("Hello World");
+            ModManager.GetSetting(ModIdStr, "enableAutoSizing", ref enableAutoSizing);
+            ModManager.GetSetting(ModIdStr, "fontMin", ref minFontSize);
+            ModManager.GetSetting(ModIdStr, "fontMax", ref maxFontSize);
         }
+
 
         public override void Dispose()
         {
@@ -47,11 +59,9 @@ namespace TaiwuCommunityTranslation
 
         public void Log(string logString, string stackTrace, LogType type)
         {
-            string filename = "EngModLogs.txt";
-
             try
             {
-                System.IO.File.AppendAllText(filename, logString + "\n");
+                File.AppendAllText(filename, logString + "\n");
             }
             catch { }
         }
@@ -62,8 +72,9 @@ namespace TaiwuCommunityTranslation
         {
             Debug.Log("Translating Events");
             DirectoryInfo d = new DirectoryInfo(EventDir); //Assuming Test is your Folder
-            Debug.Log(d.FullName);
+            Debug.Log("Loading files");
             Dictionary<string, FileInfo> files = d.GetFiles("*.txt").ToDictionary(file => file.Name); //Getting Text files
+            Debug.Log("Generating Templates");
             Dictionary<string, TaiWuTemplate> parsedTemplates = files.ToDictionary(f => f.Key, f => new TaiWuTemplate(f.Value));
 
             //For dev purposes
@@ -79,9 +90,11 @@ namespace TaiwuCommunityTranslation
             else
             {
                 //Write to new files
+                Debug.Log("Loading in translated events");
                 var file = @"events.json";
                 var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, file)));
 
+                Debug.Log("Parsing event strings");
                 // Apply values to files in memory
                 dict.Keys.ToList().ForEach(key =>
                 {
@@ -98,171 +111,25 @@ namespace TaiwuCommunityTranslation
                     string templateKey = parsedKey[2];
                     int parsedIndex = -1;
 
-                    Debug.Log(key);
                     if (parsedKey.Length == 4) parsedIndex = int.Parse(parsedKey[3]);
 
                     parsedTemplates[fileName].eventMap[guid].ApplyValue(templateKey, val, parsedIndex);
                 });
 
-                Debug.Log("Starting file write");
+                Debug.Log("Starting event write to files");
                 parsedTemplates.Keys.ToList().ForEach(key => {
                     parsedTemplates[key].WriteBackToFile();
                 });
             }
 
         }
-
-        public class TaiWuTemplate {
-
-            string fileName = "";
-            public List<EventData> eventData = new List<EventData>();
-            public Dictionary<string, EventData> eventMap = new Dictionary<string, EventData>();
-
-            FileInfo file;
-            public TaiWuTemplate(FileInfo file)
-            {
-                EventData activeEventData = null;
-                fileName = file.Name;
-                this.file = file;
-                Debug.Log($"Generating Template For {fileName}");
-                StreamReader textStream = file.OpenText();
-                while (!textStream.EndOfStream)
-                {
-                    string line = textStream.ReadLine();
-                    if (line.Length == 0) continue;
-                    int index = line.IndexOf(':');
-                    string key = line.Substring(0, index);
-                    string value = line.Substring(index+2); //Skip the ':' and the whitespace
-
-                    switch(new string(key.Where(Char.IsLetter).ToArray()))
-                    {
-                        case "EventGuid":
-                            if (activeEventData != null)
-                            {
-                                eventData.Add(activeEventData);
-                            }
-                            activeEventData = new EventData() { guid = value };
-                            break;
-                        case "EventContent":
-                            activeEventData.content = value;
-                            break;
-                        case "Option":
-                            activeEventData.options.Add(value);
-                            break;
-                    }
-                }
-                textStream.Close();
-                //Adds the last one
-                eventData.Add(activeEventData);
-
-                eventMap = eventData.ToDictionary(eventData => eventData.guid);
-            }
-
-            public void WriteBackToFile()
-            {
-                StringBuilder sb = new StringBuilder();
-                StreamReader textStream = file.OpenText();
-                EventData activeEventData = null;
-                while (!textStream.EndOfStream)
-                {
-                    string line = textStream.ReadLine();
-                    string lineToWrite = line;
-
-                    if (line.Length == 0)
-                    {
-                        sb.AppendLine();
-                        continue;
-                    }
-
-                    int index = line.IndexOf(':');
-                    string key = line.Substring(0, index);
-                    string value = line.Substring(index + 2); //Skip the ':' and the whitespace
-
-                    switch (new string(key.Where(Char.IsLetter).ToArray()))
-                    {
-                        case "EventGuid":
-                            activeEventData = eventMap[value];
-                            break;
-                        case "EventContent":
-                            lineToWrite = activeEventData.GenerateContentString();
-                            break;
-                        case "Option":
-                            lineToWrite = activeEventData.GenerateOptString(new string(key.Where(Char.IsDigit).ToArray()));
-                            break;
-                    }
-                    if(lineToWrite != "")
-                    {
-                        sb.AppendLine(lineToWrite);
-                    }
-                    else
-                    {
-                        sb.AppendLine(line);
-                    }
-                }
-                textStream.Close();
-                File.WriteAllText(file.FullName, sb.ToString());
-            }
-
-
-            public Dictionary<string, string> FlattenTemplateToDict()
-            {
-                Dictionary<string, string> dict = new Dictionary<string, string>();
-                eventData.ForEach(x =>
-                {
-                    string baseString = $"{fileName}|{x.guid}";
-                    if (x.content != null || x.content != "" || x.content != " ") dict.Add($"{baseString}|EventContent", x.content);
-                    for (int i = 0; i < x.options.Count; i++)
-                    {
-                        dict.Add($"{baseString}|Option|{i}", x.options[i]);
-                    }
-                });
-                return dict;
-            }
-        }
-
-        public class EventData
-        {
-            public string guid;
-            public string content = "";
-            public List<string> options = new List<string>();
-
-            public void ApplyValue(string templateKey, string val, int index = -1)
-            {
-                if (val == "") return;
-                if(templateKey.Contains("Option") && index > -1)
-                {
-                    options[index] = " "+val;
-                    return;
-                }
-                else if(templateKey == "EventContent")
-                {
-                    content = " "+val;
-                    return;
-                }
-                Debug.LogError($"Ya fucked up son, ${guid} | {templateKey} , index: {index}");
-            }
-
-            public string GenerateOptString(string i)
-            {
-                string val = options[int.Parse(i)-1];
-                if (val == "") return "";
-
-
-                return $"		-- Option_{i} :{val}";
-            }
-
-            public string GenerateContentString()
-            {
-                if (content == "") return "";
-
-
-                return $"		-- EventContent :{content}";
-            }
-        }
+        
     }
 
     public class TranslatorAssistant : MonoBehaviour
     {
+        public static TranslatorAssistant Instance { get; private set; }
+        public UIManager rootUi;
         public static void AddToGame()
         {
             GameObject go = new GameObject();
@@ -271,23 +138,47 @@ namespace TaiwuCommunityTranslation
             go.AddComponent<TranslatorAssistant>();
             Debug.Log("Translator assistant successfully added to game.");
         }
-
+        
         void Start()
         {
-            SetUILangauge();
+            Instance = this;
+            SingletonObject.getInstance<YieldHelper>().DelayFrameDo(1u, delegate
+            {
+                rootUi = UIManager.Instance;
+            });
+
             StartCoroutine(ReloadLangaugePacks());
             GEvent.Add((Enum)UiEvents.OnUIElementShow, new GEvent.Callback(this.OnUIShow));
+            GEvent.Add((Enum)UiEvents.TopUiChanged, new GEvent.Callback(this.OnTopUiChanged));
+            GEvent.Add((Enum)EEvents.OnGameStateChange, new GEvent.Callback(this.OnTopUiChanged));
+            
         }
 
-        public void OnUIShow(ArgumentBox argBox)
+        public void OnTopUiChanged(ArgumentBox argBox)
         {
-            UIElement uiElement;
-            if (!argBox.Get<UIElement>("Element", out uiElement))
-                return;
-            uiElement?.UiBase.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(TMPro =>
+            rootUi?.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(TMPro =>
             {
                 AdjustTMPro(TMPro);
             });
+        }
+
+        bool first = false;
+        public void OnUIShow(ArgumentBox argBox)
+        {
+            if (first == false)
+            {
+                rootUi?.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(TMPro =>
+                {
+                    AdjustTMPro(TMPro);
+                });
+                first = true;
+            }
+
+            UIElement uiElement;
+            if (!argBox.Get<UIElement>("Element", out uiElement))
+                return;
+
+            uiElement?.UiBase.GetComponentsInChildren<TextMeshProUGUI>(true);
         }
 
         private IEnumerator ReloadLangaugePacks()
@@ -295,35 +186,42 @@ namespace TaiwuCommunityTranslation
             LocalStringManager.Init("zh-CN");
             while (!LocalStringManager.ConfigLanguageInitReady)
                 yield return (object)null;
-            Debug.Log("About to apply English");
+            Debug.Log("About to apply English to non-JSON files");
             ApplyEnglishLangauge();
             Task<ParallelLoopResult> initCfgTask = Task.Run<ParallelLoopResult>((Func<ParallelLoopResult>)(() => Parallel.ForEach<IConfigData>((IEnumerable<IConfigData>)ConfigCollection.Items, (Action<IConfigData>)(item => item.Init()))));
-            Debug.Log("Application Done"); 
+            Debug.Log("Application Done");
             while (!initCfgTask.IsCompleted)
                 yield return (object)null;
             if (initCfgTask.Exception != null)
                 throw initCfgTask.Exception;
             LocalStringManager.Release();
 
-            SetUILangauge();
-
             yield return (object)new WaitForEndOfFrame();
         }
 
         private void ApplyEnglishLangauge()
-        {
-            Debug.Log("LSM Manager");
-            Debug.Log("!-----------------!");
-
-            
+        { 
             var file = @"ui_language.json";
             var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, file)));
             Debug.Log($"!!!!! ui_language loaded with {dict.Count} entries");
-            foreach (var entry in dict)
+            try
             {
-                if (entry.Value == "") continue;
-                var id = LanguageKey.LanguageKeyToId(entry.Key);
-                LocalStringManager._localUILanguageArray[id] = entry.Value;
+                foreach (var entry in dict)
+                {
+                    if (entry.Value == "") continue;
+                    var id = LanguageKey.LanguageKeyToId(entry.Key);
+                    if(LocalStringManager._localUILanguageArray.Length <= id)
+                    {
+                        Debug.Log($"{id} is out of bounds and ignore. Key: '{entry.Key}', '{entry.Value}' ");
+                        continue;
+                    }
+                    LocalStringManager._localUILanguageArray[id] = entry.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Failed to apply 'ui_language'");
+                Debug.LogError(ex.ToString());
             }
             Debug.Log("!!!!! patched LocalStringManager._localUILanguageArray");
 
@@ -337,12 +235,12 @@ namespace TaiwuCommunityTranslation
                 if (pack.MapLanguageData != null) mapPack.Add(pack);
             });
 
-            Debug.Log(arrayPack.Count);
+
             arrayPack.ForEach(pack =>
             {
                 ApplyArrayPack(pack.PackName);
             });
-            Debug.Log(mapPack.Count);
+
             mapPack.ForEach(pack =>
             {
                 ApplyMapPack(pack.PackName);
@@ -351,9 +249,9 @@ namespace TaiwuCommunityTranslation
 
         private void ApplyArrayPack(string packname)
         {
-            if (!File.Exists(Path.Combine(Mod.prefix, packname+".txt"))) return;
+            if (!File.Exists(Path.Combine(Mod.prefix, packname + ".txt"))) return;
             string[] list = File.ReadAllLines(Path.Combine(Mod.prefix, packname + ".txt"));
-            for(int i = 0; i < list.Length; i++)
+            for (int i = 0; i < list.Length; i++)
             {
                 LocalStringManager._configLanguageMap[packname].ArrayLanguageData[i] = list[i];
             }
@@ -368,36 +266,41 @@ namespace TaiwuCommunityTranslation
             });
         }
 
-        void AdjustTMPro(TextMeshProUGUI textMesh)
+        public void AdjustTMPro(TextMeshProUGUI textMesh)
         {
-            if(textMesh == null) return;    
+            if (textMesh == null) return;
             if (Mod.enableAutoSizing)
             {
-                textMesh.fontSizeMin = 14;
-                textMesh.fontSizeMax = 26;
+                textMesh.fontSizeMin = 16;
+                textMesh.fontSizeMax = 28;
                 textMesh.enableAutoSizing = true;
-                textMesh.ForceMeshUpdate(true);
+                //textMesh.ForceMeshUpdate(true);
             }
         }
 
-        public void SetUILangauge()
+        public static void ResizeAndRealignText(TextMeshProUGUI t, Vector2 size, bool includeParent, bool repositionParent = false)
         {
-            SingletonObject.getInstance<YieldHelper>().DelayFrameDo(1u, delegate {
-                var rootGo = UIManager.Instance.gameObject;
-                var textLanguages = rootGo.GetComponentsInChildren<TextLanguage>(true);
-                Debug.Log(textLanguages.Length);
-                foreach (var tl in textLanguages)
+            if (includeParent)
+            {
+                RectTransform parentTransform = (t.rectTransform.parent as RectTransform);
+                if (repositionParent)
                 {
-                    tl.SetLanguage();
-                    
+                    Vector2 diff = size - parentTransform.sizeDelta;
+                    parentTransform.offsetMin -= diff * new Vector2(1, -1);
+                    parentTransform.offsetMax -= diff * new Vector2(1, -1);
                 }
-                Debug.Log(rootGo.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().Count);
-                rootGo.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(tmpro =>
-                {
-                    AdjustTMPro(tmpro);
-                });
-            });
 
+                parentTransform.sizeDelta = size;
+
+                t.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                t.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                t.rectTransform.localPosition = new Vector2(0, 0);
+            }
+            t.alignment = TextAlignmentOptions.Center;
+            t.verticalAlignment = VerticalAlignmentOptions.Middle;
+            t.rectTransform.offsetMax = Vector2.zero;
+            t.rectTransform.offsetMin = Vector2.zero;
+            t.rectTransform.sizeDelta = size;
         }
     }
 
@@ -418,10 +321,85 @@ namespace TaiwuCommunityTranslation
                     transform.sizeDelta = new Vector2(90, sizeDelta.y);
                 }
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(UI_Combat), nameof(UI_Combat.OnInit))]
+    class CombatPath
+    {
+        static void Postfix()
+        {
+            
+            /*
+            Debug.Log("Combat UI harmony patch");
+            GameObject bbl = GameObject.Find("/Camera_UIRoot/Canvas/LayerMain/UI_Combat/Bottom/CombatSkillScroll/Viewport/");
+            
+            if(bbl != null)
+            {
+                GridLayoutGroup grid = bbl.GetComponent<GridLayoutGroup>();
+                grid.cellSize = new Vector2(173, 100);
+            }
+            */
+        }
+    }
+
+
+    [HarmonyPatch(typeof(UI_NewGame), nameof(UI_NewGame.Start))]
+    class NewGameFix
+    {
+        static void Postfix()
+        {
+            Debug.Log("!!!Harmony!!! - UI_NewGame Patched");
+            UI_NewGame newGameUi = TranslatorAssistant.Instance.rootUi
+                .GetComponentInChildren<UI_NewGame>();
+
+            newGameUi.GetComponentsInChildren<TextMeshProUGUI>(true)
+                .ToList()
+                .ForEach(t => TranslatorAssistant.Instance.AdjustTMPro(t));
+
+            FixWorldMapLabels();
 
         }
 
-      
+        static void FixWorldMapLabels()
+        {
+            PartWorldView pwv = TranslatorAssistant.Instance.rootUi.GetComponentInChildren<PartWorldView>(true);
+
+            pwv.GetComponentsInChildren<TextMeshProUGUI>(true)
+                .Where(t => t.gameObject.name == "CityName" || t.gameObject.name == "ReligionName")
+                .ToList()
+                .ForEach(t =>
+                {
+                    TranslatorAssistant.ResizeAndRealignText(t, new Vector2(200, 80), true);
+                });
+        }
+
+
+    }
+
+    [HarmonyPatch(typeof(GlobalConfig), nameof(GlobalConfig.Init))]
+    static class GlobalConfigPatch
+    {
+        static void Postfix()
+        {
+            Debug.Log("Overwriting config settings");
+            GlobalConfig.Instance.NameLengthConfig_CN = new byte[2] { 6, 6 };
+        }
+    }
+
+    [HarmonyPatch(typeof(ItemView), nameof(ItemView.SetData))]
+    static class ItemItemViewPatch
+    {
+        static void Postfix(ItemView __instance)
+        {
+            __instance.GetComponentsInChildren<TextMeshProUGUI>(true)
+                .Where(x => x.name == "Type")
+                .ToList()
+                .ForEach((x) =>
+                {
+                    TranslatorAssistant.ResizeAndRealignText(x, new Vector2(100, 40), true, true);
+                });
+        }
     }
 
     //Temp fix
@@ -469,3 +447,10 @@ namespace TaiwuCommunityTranslation
         }
     }*/
 }
+
+/*TO-DO
+ * 
+ * WIDEN SELECTION TAB
+ * Camera_UIRoot/Canvas/LayerPopUp/UI_CharacterMenuLifeSkill/ElementsRoot/Detail/TopBack/SkillTypeTogGroup/SkillTypeTog0 (15)
+ * ClassName: CTOG, CIMAGE
+ */
