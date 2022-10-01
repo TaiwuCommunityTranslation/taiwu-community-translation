@@ -7,6 +7,6 @@ You may optionally download the language files from [vizv/taiwu-language-files-e
 Tools for dump the original text can be found at [vizv/taiwu-language-files-zh-hans](https://github.com/vizv/taiwu-language-files-zh-hans).
 
 
-#Development Note
+# Development Note
 Builds are compiled against a publicized .DLL due to some problematic class nesting. 
 https://github.com/CabbageCrow/AssemblyPublicizer
