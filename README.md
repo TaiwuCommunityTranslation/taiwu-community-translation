@@ -9,7 +9,7 @@ You can download the English Langauge files, the Chinese RAW langauge files, and
 # Installation Instructions
 1. Download the latest release from the right side-bar.
 2. Extract the contents to your Scroll Of Taiwu folder.
-3. Go here [TaiwuCommunityTranslation/taiwu-language-files-zh-hans](https://github.com/TaiwuCommunityTranslation/taiwu-language-files-zh-hans) and get a copy of the repository.
+3. IMPORTANT: Go here [TaiwuCommunityTranslation/taiwu-language-files-zh-hans](https://github.com/TaiwuCommunityTranslation/taiwu-language-files-zh-hans) and get a copy of the repository.
 4. Put the contents of the `Translations` inside the `Langauges` folder in your Scroll Of Taiwu folder.
 5. You need to enable the mod from the game's main menu (Right most button, click the checkmark below the mod-name, and then click the blue button).
 
