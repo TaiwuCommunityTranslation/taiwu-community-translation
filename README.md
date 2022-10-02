@@ -7,7 +7,7 @@ Download the latest version from the releases.
 You can download the English Langauge files, the Chinese RAW langauge files, and the extraction tools to generate the files over at [TaiwuCommunityTranslation/taiwu-language-files-zh-hans](https://github.com/TaiwuCommunityTranslation/taiwu-language-files-zh-hans).
 
 # Installation Instructions
-1. Download the latest release from the right side-bar.
+1. Download the latest [release](https://github.com/TaiwuCommunityTranslation/taiwu-community-translation/releases) from the right side-bar.
 2. Extract the contents to your Scroll Of Taiwu folder.
 3. IMPORTANT: Go here [TaiwuCommunityTranslation/taiwu-language-files-zh-hans](https://github.com/TaiwuCommunityTranslation/taiwu-language-files-zh-hans) and get a copy of the repository.
 4. Put the contents of the `Translations` inside the `Langauges` folder in your Scroll Of Taiwu folder.
