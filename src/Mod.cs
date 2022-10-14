@@ -298,6 +298,7 @@ namespace TaiwuCommunityTranslation
             }
             t.alignment = TextAlignmentOptions.Center;
             t.verticalAlignment = VerticalAlignmentOptions.Middle;
+            t.enableWordWrapping = true;
             t.rectTransform.offsetMax = Vector2.zero;
             t.rectTransform.offsetMin = Vector2.zero;
             t.rectTransform.sizeDelta = size;
@@ -321,25 +322,6 @@ namespace TaiwuCommunityTranslation
                     transform.sizeDelta = new Vector2(90, sizeDelta.y);
                 }
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(UI_Combat), nameof(UI_Combat.OnInit))]
-    class CombatPath
-    {
-        static void Postfix()
-        {
-            
-            /*
-            Debug.Log("Combat UI harmony patch");
-            GameObject bbl = GameObject.Find("/Camera_UIRoot/Canvas/LayerMain/UI_Combat/Bottom/CombatSkillScroll/Viewport/");
-            
-            if(bbl != null)
-            {
-                GridLayoutGroup grid = bbl.GetComponent<GridLayoutGroup>();
-                grid.cellSize = new Vector2(173, 100);
-            }
-            */
         }
     }
 
@@ -386,7 +368,24 @@ namespace TaiwuCommunityTranslation
             GlobalConfig.Instance.NameLengthConfig_CN = new byte[2] { 6, 6 };
         }
     }
-
+    
+    [HarmonyPatch(typeof(MouseTipBase), nameof(MouseTipBase.OnInit))]
+    static class MouseTipBasePatch
+    {
+        static void Postfix(MouseTipBase __instance)
+        {
+            Debug.Log("Activated");
+            __instance.GetComponentsInChildren<TextMeshProUGUI>(true)
+            .Where(t => t.gameObject.name == "EffectTips" )
+            .ToList()
+            .ForEach(t =>
+            {
+                TranslatorAssistant.ResizeAndRealignText(t, new Vector2(400, 80), true);
+            });
+            
+        }
+    }
+    
     [HarmonyPatch(typeof(ItemView), nameof(ItemView.SetData))]
     static class ItemItemViewPatch
     {
@@ -436,6 +435,7 @@ namespace TaiwuCommunityTranslation
             return false;
         }
     }
+
     /*
     [HarmonyPatch(typeof(EventModel), "AdjustDataForDisplay")]
     class TranslateEvents

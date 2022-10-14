@@ -10,7 +10,7 @@
       <HintPath>G:\SteamLibrary\steamapps\common\The Scroll Of Taiwu\The Scroll of Taiwu_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>C:\Users\kabut\source\repos\taiwu-community-translation\bin\Debug\net481\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath>
+      <HintPath>G:\SteamLibrary\steamapps\common\The Scroll Of Taiwu\The Scroll of Taiwu_Data\Managed\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath>
 	    
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">

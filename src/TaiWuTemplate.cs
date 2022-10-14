@@ -123,19 +123,25 @@ public class EventData
 
     public void ApplyValue(string templateKey, string val, int index = -1)
     {
-        if (val == "") return;
-        if (templateKey.Contains("Option") && index > -1)
+        try
         {
-            options[index] = " " + val;
-            return;
-        }
-        else if (templateKey == "EventContent")
+            if (val == "") return;
+            if (templateKey.Contains("Option") && index > -1)
+            {
+                options[index] = " " + val;
+                return;
+            }
+            else if (templateKey == "EventContent")
+            {
+                content = " " + val;
+                return;
+            }
+        } catch (Exception ex)
         {
-            content = " " + val;
-            return;
+            Debug.LogError($"Ya fucked up son, {guid} | {templateKey} , index: {index}, options list count {options.Count}. This probably just means source strings needs to be updates in the github.");
+            Debug.LogError(ex.StackTrace.ToString());
         }
-
-        Debug.LogError($"Ya fucked up son, ${guid} | {templateKey} , index: {index}");
+        
     }
 
     public string GenerateOptString(string i)
