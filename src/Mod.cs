@@ -158,7 +158,7 @@ namespace TaiwuCommunityTranslation
         {
             rootUi?.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(TMPro =>
             {
-                AdjustTMPro(TMPro);
+                StartCoroutine(AdjustTMPro(TMPro));
             });
         }
 
@@ -169,7 +169,7 @@ namespace TaiwuCommunityTranslation
             {
                 rootUi?.GetComponentsInChildren<TextMeshProUGUI>(true).ToList().ForEach(TMPro =>
                 {
-                    AdjustTMPro(TMPro);
+                    StartCoroutine(AdjustTMPro(TMPro));
                 });
                 first = true;
             }
@@ -266,10 +266,14 @@ namespace TaiwuCommunityTranslation
             });
         }
 
-        public void AdjustTMPro(TextMeshProUGUI textMesh)
+        public void StartAdjustCoroutine(TextMeshProUGUI tm)
         {
-            if (textMesh == null) return;
-            if (Mod.enableAutoSizing)
+            StartCoroutine(AdjustTMPro(tm));
+        }
+        public IEnumerator AdjustTMPro(TextMeshProUGUI textMesh)
+        {
+            yield return new WaitForEndOfFrame();
+            if (textMesh == null && Mod.enableAutoSizing)
             {
                 textMesh.fontSizeMin = 16;
                 textMesh.fontSizeMax = 28;
@@ -337,7 +341,7 @@ namespace TaiwuCommunityTranslation
 
             newGameUi.GetComponentsInChildren<TextMeshProUGUI>(true)
                 .ToList()
-                .ForEach(t => TranslatorAssistant.Instance.AdjustTMPro(t));
+                .ForEach(t => TranslatorAssistant.Instance.StartAdjustCoroutine(t));
 
             FixWorldMapLabels();
 
@@ -419,14 +423,14 @@ namespace TaiwuCommunityTranslation
                 __instance._backIndex = 1;
             else if (__instance._title.Equals(LocalStringManager.Get((ushort)2291)))
                 __instance._backIndex = 0;
-            CImage image = __instance.CGet<CImage>("Back");
+            CRawImage image = __instance.CGet<CRawImage>("Back");
             CImage component = __instance.CGet<RectTransform>("Title").GetChild(0).GetComponent<CImage>();
-            ResLoader.Load<Sprite>(Path.Combine("RemakeResources/Textures/GetItem", __instance._backNameList[__instance._backIndex]), (Action<Sprite>)(sprite =>
+            ResLoader.Load<Texture2D>(Path.Combine("RemakeResources/Textures/GetItem", __instance._backNameList[__instance._backIndex]), (Action<Texture2D>)(texture =>
             {
-                image.sprite = sprite;
+                image.texture = (Texture) texture;
                 image.enabled = true;
             }));
-            if (__instance._title.Length > 4)
+            if (__instance._title.Length > 4 && !__instance._titleList.ContainsKey(__instance._title))
                 __instance._title = __instance._title.Substring(0, 4);
             //Setting this value makes shit not break
             component.SetSprite(string.Format("acquire_mingcheng_{0}", (object)1));
