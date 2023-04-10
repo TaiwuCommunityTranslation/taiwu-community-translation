@@ -188,13 +188,23 @@ namespace TaiwuCommunityTranslation
                 yield return (object)null;
             Debug.Log("About to apply English to non-JSON files");
             ApplyEnglishLangauge();
-            Task<ParallelLoopResult> initCfgTask = Task.Run<ParallelLoopResult>((Func<ParallelLoopResult>)(() => Parallel.ForEach<IConfigData>((IEnumerable<IConfigData>)ConfigCollection.Items, (Action<IConfigData>)(item => item.Init()))));
-            Debug.Log("Application Done");
+            Task<ParallelLoopResult> initCfgTask = Task.Run<ParallelLoopResult>(() => Parallel.ForEach<IConfigData>(ConfigCollection.Items, delegate (IConfigData item)
+            {         
+                    item.Init();          
+            }));
+            initCfgTask.Wait();
             while (!initCfgTask.IsCompleted)
-                yield return (object)null;
-            if (initCfgTask.Exception != null)
+            {
+                yield return null;
+            }
+            bool flag2 = initCfgTask.Exception != null;
+            if (flag2)
+            {
                 throw initCfgTask.Exception;
+            }
+            RefNameMap.DoQueuedLoadRequests();
             LocalStringManager.Release();
+            SensitiveWordsSystem.Instance.Init();
 
             yield return (object)new WaitForEndOfFrame();
         }
@@ -411,17 +421,17 @@ namespace TaiwuCommunityTranslation
     {
         static bool Prefix(UI_GetItem __instance)
         {
-            if (__instance._titleList.Count <= 0 || __instance._title.IsNullOrEmpty())
+     if (__instance._titleList.Count <= 0 || __instance._title.IsNullOrEmpty())
                 return false;
-            if (__instance._title.Equals(LocalStringManager.Get((ushort)1124)) || __instance._title.Equals(LocalStringManager.Get((ushort)2280)) || __instance._title.Equals(LocalStringManager.Get((ushort)2281)))
+            if (__instance._title.Equals(LocalStringManager.Get((ushort)1275)) || __instance._title.Equals(LocalStringManager.Get((ushort)2540)) || __instance._title.Equals(LocalStringManager.Get((ushort)2541)))
                 __instance._backIndex = 4;
-            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2282)) || __instance._title.Equals(LocalStringManager.Get((ushort)2283)) || __instance._title.Equals(LocalStringManager.Get((ushort)2284)) || __instance._title.Equals(LocalStringManager.Get((ushort)2285)) || __instance._title.Equals(LocalStringManager.Get((ushort)2286)))
+            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2542)) || __instance._title.Equals(LocalStringManager.Get((ushort)2543)) || __instance._title.Equals(LocalStringManager.Get((ushort)2544)) || __instance._title.Equals(LocalStringManager.Get((ushort)2545)) || __instance._title.Equals(LocalStringManager.Get((ushort)2546)))
                 __instance._backIndex = 3;
-            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2287)) || __instance._title.Equals(LocalStringManager.Get((ushort)2288)))
+            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2547)) || __instance._title.Equals(LocalStringManager.Get((ushort)2548)))
                 __instance._backIndex = 2;
-            else if (__instance._title.Equals(LocalStringManager.Get((ushort)1125)) || __instance._title.Equals(LocalStringManager.Get((ushort)2289)) || __instance._title.Equals(LocalStringManager.Get((ushort)2290)) || __instance._title.Equals(LocalStringManager.Get((ushort)2128)))
+            else if (__instance._title.Equals(LocalStringManager.Get((ushort)1276)) || __instance._title.Equals(LocalStringManager.Get((ushort)2549)) || __instance._title.Equals(LocalStringManager.Get((ushort)2550)) || __instance._title.Equals(LocalStringManager.Get((ushort)2551)) || __instance._title.Equals(LocalStringManager.Get((ushort)2382)))
                 __instance._backIndex = 1;
-            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2291)))
+            else if (__instance._title.Equals(LocalStringManager.Get((ushort)2552)))
                 __instance._backIndex = 0;
             CRawImage image = __instance.CGet<CRawImage>("Back");
             CImage component = __instance.CGet<RectTransform>("Title").GetChild(0).GetComponent<CImage>();
