@@ -1,4 +1,4 @@
-﻿using Config;
+using Config;
 using Config.Common;
 using FrameWork;
 using HarmonyLib;
@@ -31,7 +31,7 @@ namespace TaiwuCommunityTranslation
             Application.logMessageReceived += Log;
             base.Initialize();
             File.WriteAllText(filename, "Mod loaded \n");
-            
+
 
             Debug.Log("!!!!! Taiwu Community Translation loaded");
             if (!Directory.Exists(prefix)) return;
@@ -123,7 +123,7 @@ namespace TaiwuCommunityTranslation
             }
 
         }
-        
+
     }
 
     public class TranslatorAssistant : MonoBehaviour
@@ -138,7 +138,7 @@ namespace TaiwuCommunityTranslation
             go.AddComponent<TranslatorAssistant>();
             Debug.Log("Translator assistant successfully added to game.");
         }
-        
+
         void Start()
         {
             Instance = this;
@@ -151,7 +151,7 @@ namespace TaiwuCommunityTranslation
             GEvent.Add((Enum)UiEvents.OnUIElementShow, new GEvent.Callback(this.OnUIShow));
             GEvent.Add((Enum)UiEvents.TopUiChanged, new GEvent.Callback(this.OnTopUiChanged));
             GEvent.Add((Enum)EEvents.OnGameStateChange, new GEvent.Callback(this.OnTopUiChanged));
-            
+
         }
 
         public void OnTopUiChanged(ArgumentBox argBox)
@@ -189,8 +189,8 @@ namespace TaiwuCommunityTranslation
             Debug.Log("About to apply English to non-JSON files");
             ApplyEnglishLangauge();
             Task<ParallelLoopResult> initCfgTask = Task.Run<ParallelLoopResult>(() => Parallel.ForEach<IConfigData>(ConfigCollection.Items, delegate (IConfigData item)
-            {         
-                    item.Init();          
+            {
+                item.Init();
             }));
             initCfgTask.Wait();
             while (!initCfgTask.IsCompleted)
@@ -210,7 +210,7 @@ namespace TaiwuCommunityTranslation
         }
 
         private void ApplyEnglishLangauge()
-        { 
+        {
             var file = @"ui_language.json";
             var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, file)));
             Debug.Log($"!!!!! ui_language loaded with {dict.Count} entries");
@@ -220,19 +220,21 @@ namespace TaiwuCommunityTranslation
                 {
                     if (entry.Value == "") continue;
                     var id = LanguageKey.LanguageKeyToId(entry.Key);
-                    if(LocalStringManager._localUILanguageArray.Length <= id)
+                    if (LocalStringManager._localUILanguageArray.Length <= id)
                     {
                         Debug.Log($"{id} is out of bounds and ignore. Key: '{entry.Key}', '{entry.Value}' ");
                         continue;
                     }
                     LocalStringManager._localUILanguageArray[id] = entry.Value;
                 }
+
             }
             catch (Exception ex)
             {
                 Debug.LogError("Failed to apply 'ui_language'");
                 Debug.LogError(ex.ToString());
             }
+
             Debug.Log("!!!!! patched LocalStringManager._localUILanguageArray");
 
 
@@ -254,6 +256,7 @@ namespace TaiwuCommunityTranslation
             mapPack.ForEach(pack =>
             {
                 ApplyMapPack(pack.PackName);
+                ApplyAdvPack(pack.PackName);
             });
         }
 
@@ -270,6 +273,15 @@ namespace TaiwuCommunityTranslation
         {
             if (!File.Exists(Path.Combine(Mod.prefix, packname))) return;
             var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, packname)));
+            dict.Keys.ToList().ForEach(key =>
+            {
+                LocalStringManager._configLanguageMap[packname].MapLanguageData[key] = dict[key];
+            });
+        }
+        private void ApplyAdvPack(string packname)
+        {
+            if (!File.Exists(Path.Combine(Mod.prefix, "Adventure_language.json"))) return;
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(Path.Combine(Mod.prefix, "Adventure_language.json")));
             dict.Keys.ToList().ForEach(key =>
             {
                 LocalStringManager._configLanguageMap[packname].MapLanguageData[key] = dict[key];
@@ -382,7 +394,7 @@ namespace TaiwuCommunityTranslation
             GlobalConfig.Instance.NameLengthConfig_CN = new byte[2] { 6, 6 };
         }
     }
-    
+
     [HarmonyPatch(typeof(MouseTipBase), nameof(MouseTipBase.OnInit))]
     static class MouseTipBasePatch
     {
@@ -390,16 +402,16 @@ namespace TaiwuCommunityTranslation
         {
             Debug.Log("Activated");
             __instance.GetComponentsInChildren<TextMeshProUGUI>(true)
-            .Where(t => t.gameObject.name == "EffectTips" )
+            .Where(t => t.gameObject.name == "EffectTips")
             .ToList()
             .ForEach(t =>
             {
                 TranslatorAssistant.ResizeAndRealignText(t, new Vector2(400, 80), true);
             });
-            
+
         }
     }
-    
+
     [HarmonyPatch(typeof(ItemView), nameof(ItemView.SetData))]
     static class ItemItemViewPatch
     {
@@ -421,7 +433,7 @@ namespace TaiwuCommunityTranslation
     {
         static bool Prefix(UI_GetItem __instance)
         {
-     if (__instance._titleList.Count <= 0 || __instance._title.IsNullOrEmpty())
+            if (__instance._titleList.Count <= 0 || __instance._title.IsNullOrEmpty())
                 return false;
             if (__instance._title.Equals(LocalStringManager.Get((ushort)1275)) || __instance._title.Equals(LocalStringManager.Get((ushort)2540)) || __instance._title.Equals(LocalStringManager.Get((ushort)2541)))
                 __instance._backIndex = 4;
@@ -437,7 +449,7 @@ namespace TaiwuCommunityTranslation
             CImage component = __instance.CGet<RectTransform>("Title").GetChild(0).GetComponent<CImage>();
             ResLoader.Load<Texture2D>(Path.Combine("RemakeResources/Textures/GetItem", __instance._backNameList[__instance._backIndex]), (Action<Texture2D>)(texture =>
             {
-                image.texture = (Texture) texture;
+                image.texture = (Texture)texture;
                 image.enabled = true;
             }));
             if (__instance._title.Length > 4 && !__instance._titleList.ContainsKey(__instance._title))
